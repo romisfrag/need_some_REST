@@ -57,5 +57,10 @@ val replace_terme_item : location -> inTm -> location
 val replace_type_item : location -> inTm -> location
 
 
+(* Fonction prenant en argument une liste (int * inTm * inTm) correspondant au numéro d'un Intermediaire le type et le terme 
+Les arguments se mettent dans l'ordre et cela créra des Section(Item(Inter(args liste))) *)
+val insert_liste : location -> (int * inTm * inTm) list -> location
+
+
 
 

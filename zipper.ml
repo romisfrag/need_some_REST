@@ -110,7 +110,7 @@ let rec go_right_count (Loc(t,p)) n =
   | Node(left,up,[]) -> n
   | Node(left,up,right) -> go_right_count (go_right (Loc(t,p))) (n + 1)
   | Top -> 0
-and count_son (Loc(t,p),d) =   
+and count_son (Loc(t,p)) =   
   go_right_count (go_full_left (Loc(t,p))) 0
 
 
@@ -189,9 +189,9 @@ let get_var_type (Loc(t,p)) var =
 
 (* -----------------------------------Fonctions de modifications du zipper-----------------------------------*)
 
-let replace_item (Loc(t,p),d) tsub = 
+let replace_item (Loc(t,p)) tsub = 
   match t with 
-  | Item(_) -> (Loc(tsub,p),d)
+  | Item(_) -> (Loc(tsub,p))
   | _ -> failwith "replac_item : you are supposed to change an item" 
 
 let replace_terme_item (Loc(t,p)) terme = 
@@ -208,6 +208,65 @@ let replace_type_item (Loc(t,p)) typ =
   | Item(Definition(name,(Complete(_,terme)))) -> Loc(Item(Definition(name,(Complete(typ,terme)))),p)
   | Item(Definition(name,(Incomplete(_,terme)))) -> Loc(Item(Definition(name,(Incomplete(typ,terme)))),p)
   | _ -> failwith "replace_terme_item : can't replace in other things than item" 
+
+
+
+(* ??J'aurais peut etre besoin de crée des fonctions avec les 3 ci dessous *)
+let insert_right (Loc(t,p)) r = match p with
+    Top -> failwith "insert of top"
+  | Node(left,up,right) -> (Loc(t,Node(left,up,r::right)))
+
+let insert_left (Loc(t,p)) l = match p with
+Top -> failwith "insert of top"
+| Node(left,up,right) -> (Loc(t,Node(l::left,up,right)))
+
+let insert_down (Loc(t,p)) t1 = 
+  match t with
+  | Item(_) -> failwith "down of item"
+  | Section(sons) -> (Loc(t1,Node([],p,sons)))
+
+
+let rec insert_some_right (Loc(t,p)) liste_section_or_item = 
+  match liste_section_or_item with 
+  | [] -> (Loc(t,p))
+  | elem :: suite -> let (Loc(t,p)) = insert_right (Loc(t,p)) elem in 
+		     insert_some_right (Loc(t,p)) suite 
+
+let insert_liste (Loc(t,p)) liste  = 
+  let liste = List.rev liste in 
+  begin
+    match liste with 
+    | (num,typ,terme) :: suite -> 
+       let liste = List.map (fun x -> Section([Item(Intermediaire(num,typ,terme))])) liste in
+       insert_some_right (Loc(t,p)) liste
+    | _ -> failwith "insert_liste : your list is not of type (int * inTm * inTm) list *)"
+  end
+
+
+let delete (Loc(_,p)) = 
+  match p with
+    Top -> failwith "delete of top"
+  | Node(left,up,r::right) -> (Loc(r,Node(left,up,right)))
+  | Node(l::left,up,[]) -> (Loc(l,Node(left,up,[])))
+  | Node([],up,[]) -> (Loc(Section[],up))
+
+
+(* TODO :: remove the function below it's just to go throught the ocaml typehceker *)
+let check_if_no_hole_inTm (terme : inTm) = 
+  true
+
+(* You need to call this function with a complete terme first *)
+let verif_and_push_up_items (Loc(t,p)) = 
+  let terme_to_push = get_terme_item (Loc(t,p)) in
+  if check_if_no_hole_inTm terme_to_push
+  then let type_of_terme_to_push = get_type_item (Loc(t,p)) in
+       let hole = get_num_Inter (Loc(t,p)) in
+       let arbre = proof_up (Loc(t,p)) in 
+       let 
+       failwith "lol"
+  else (Loc(t,p))
+  
+                        
 
 
 
